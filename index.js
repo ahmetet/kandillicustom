@@ -123,7 +123,7 @@ async function fetchEarthquakes() {
                 found++;
             }
 
-            if (found === 5) break;
+            if (found === 1) break;
         }
     } catch (error) {
         console.error('Veri alınamadı:', error.message);
