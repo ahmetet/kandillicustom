@@ -4,7 +4,7 @@ Bu proje, **Boğaziçi Üniversitesi Kandilli Rasathanesi** tarafından sağlana
 
 ## Özellikler
 
-- 📡 Veriler `http://www.koeri.boun.edu.tr/scripts/lst6.asp` adresinden çekilir.
+- 📡 Veriler `http://www.koeri.boun.edu.tr/` adresinden çekilir.
 - 🌐 İstanbul ve Marmara Bölgesi’ne özel filtreleme.
 - 📊 Minimum büyüklük değeri: **1.7 ML**
 - 🔔 Yeni deprem tespit edildiğinde:
