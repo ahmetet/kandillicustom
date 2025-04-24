@@ -4,8 +4,6 @@ const fs = require('fs');
 const path = require('path');
 const notifier = require('node-notifier');
 
-const url = 'http://www.koeri.boun.edu.tr/scripts/lst6.asp';
-
 const BUYUKLUK_MIN = 1.7;
 const istanbulKeywords = [
     'MARMARA DENIZI',
@@ -54,7 +52,7 @@ function sortDataByDate(data) {
         const dateA = new Date(`${yearA}-${monthNumMap[monthA]}-${dayA}T${a.time}`);
         const dateB = new Date(`${yearB}-${monthNumMap[monthB]}-${dayB}T${b.time}`);
 
-        return dateB - dateA; // büyükten küçüğe
+        return dateB - dateA;
     });
 }
 
@@ -71,26 +69,43 @@ function saveNewQuake(quake) {
         fs.writeFileSync(dataPath, JSON.stringify(sorted, null, 2), 'utf-8');
         console.log('Yeni deprem:', quake);
 
-        // 🔔 Masaüstü bildirimi
         notifier.notify({
             title: 'YENİ DEPREM - [ ' + quake.magnitude + ' ]',
             message: `${quake.date} ${quake.time}\n${quake.location}`,
-            icon: path.join(__dirname, 'icon.png'), // özel ikon ekle
-            sound: true, // sesli uyarı
-            wait: false, // tıklamayı beklemez
-            timeout: 20 // saniye cinsinden bildirim gösterme süresi
+            icon: path.join(__dirname, 'icon.png'),
+            sound: true,
+            wait: false,
+            timeout: 20
         });
     }
 }
+
+const urls = Array.from({ length: 10 }, (_, i) =>
+    `http://www.koeri.boun.edu.tr/scripts/lst${i}.asp`
+);
+
+async function findWorkingUrl() {
+    for (const tryUrl of urls) {
+        try {
+            const res = await axios.get(tryUrl, {
+                timeout: 5000,
+                responseType: 'arraybuffer',
+                headers: { 'User-Agent': 'Mozilla/5.0' }
+            });
+            if (res.status === 200) {
+                return {
+                    html: Buffer.from(res.data, 'binary').toString('latin1'),
+                    usedUrl: tryUrl
+                };
+            }
+        } catch (_) { }
+    }
+    throw new Error('Hiçbir kaynak link çalışmıyor!');
+}
+
 async function fetchEarthquakes() {
     try {
-        const { data } = await axios.get(url, {
-            timeout: 10000,
-            responseType: 'arraybuffer',
-            headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
-
-        const html = Buffer.from(data, 'binary').toString('latin1');
+        const { html, usedUrl } = await findWorkingUrl();
         const $ = cheerio.load(html);
         const text = $('pre').text();
         const lines = text.trim().split('\n').slice(6);
